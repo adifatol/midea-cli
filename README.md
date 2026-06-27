@@ -25,16 +25,40 @@ midea> chart 6
 
 ## Install
 
-Requires Python 3.10+.
+### Easiest (macOS / Linux): uv
 
-### With pipx (recommended)
+[`uv`](https://docs.astral.sh/uv/) is the simplest path on a fresh machine — it
+installs the app in its own isolated environment **and fetches a compatible
+Python for you**, so you don't have to install or manage Python at all.
 
 ```bash
+# 1. install uv (once)
+curl -LsSf https://astral.sh/uv/install.sh | sh   # or: brew install uv
+
+# 2. install midea-cli
+uv tool install git+https://github.com/adifatol/midea-cli
+
+# 3. run it
+midea
+```
+
+Update later with `uv tool upgrade midea-cli`; remove with `uv tool uninstall
+midea-cli`. (If `midea` isn't found afterwards, run `uv tool update-shell` and
+open a new terminal.)
+
+### With pipx
+
+If you already have Python 3.10+ and Homebrew:
+
+```bash
+brew install pipx        # or: python3 -m pip install --user pipx
 pipx install git+https://github.com/adifatol/midea-cli
 midea
 ```
 
 ### From source
+
+Requires Python 3.10+.
 
 ```bash
 git clone https://github.com/adifatol/midea-cli
