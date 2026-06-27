@@ -82,6 +82,12 @@ On first launch it scans the LAN for your AC and saves its
 needs your own login, re-run and enter your NetHome Plus email/password when
 prompted, or set `NETHOME_ACCOUNT` / `NETHOME_PASSWORD` / `AC_REGION` env vars.
 
+> **Region:** the built-in account only covers **US**, **DE**, and **KR**.
+> Pick **DE** if you're in Europe/UK (common aliases like `EU`/`UK` are mapped
+> to `DE` for you, and anything unrecognised falls back to `US`). For any other
+> region, enter your own NetHome Plus account — with your own login the region
+> doesn't matter.
+
 `config.example.json` shows the shape of that file — you normally don't write it
 by hand; the first run generates it for you.
 

@@ -80,6 +80,17 @@ def _ask(label: str, default: str, env_key: str) -> str:
     return default
 
 
+# msmart's built-in NetHome Plus account only ships cloud credentials for these
+# regions (see msmart/cloud.py). EU/UK users want DE; SEA/Korea want KR. With
+# your *own* account the region is ignored, so any of these is fine then.
+BUILTIN_CLOUD_REGIONS = {"US", "DE", "KR"}
+REGION_ALIASES = {
+    "US": "US", "USA": "US", "NA": "US",
+    "DE": "DE", "EU": "DE", "EUROPE": "DE", "UK": "DE", "GERMANY": "DE",
+    "KR": "KR", "KOREA": "KR", "ASIA": "KR", "SEA": "KR",
+}
+
+
 async def setup_device() -> dict:
     """Discover a Midea AC on the LAN and return a config dict for it."""
     console.print(
@@ -89,19 +100,48 @@ async def setup_device() -> dict:
         "the unit but cannot get a key, re-run and enter your NetHome Plus login\n"
         "(or set NETHOME_ACCOUNT / NETHOME_PASSWORD / AC_REGION env vars).\n"
     )
-    region = _ask("Region [US/EU/CN] (default US): ", "US", "AC_REGION")
+    region = _ask(
+        "Region for the built-in account [US/DE/KR] (default US; EU/UK → DE): ",
+        "US", "AC_REGION",
+    ).strip().upper()
     account = _ask("NetHome Plus email (blank = built-in): ", "", "NETHOME_ACCOUNT")
     password = ""
     if account:
         password = _ask("NetHome Plus password: ", "", "NETHOME_PASSWORD")
 
+    # The built-in account only has keys for US/DE/KR. Map common aliases (EU→DE,
+    # etc.) and, if it's still unrecognised, fall back to US instead of letting
+    # msmart raise "Unknown cloud region" deep inside discovery. With your own
+    # account msmart ignores the region, so we leave it untouched in that case.
+    if not account:
+        mapped = REGION_ALIASES.get(region, region)
+        if mapped not in BUILTIN_CLOUD_REGIONS:
+            console.print(
+                f"[yellow]No built-in account for region {region!r} "
+                f"(supported: {', '.join(sorted(BUILTIN_CLOUD_REGIONS))}). "
+                f"Falling back to US.[/yellow]\n"
+                "[dim]For other regions, re-run and enter your own NetHome Plus "
+                "login.[/dim]"
+            )
+            mapped = "US"
+        region = mapped
+
     console.print("\n[cyan]Scanning the LAN (this takes a few seconds)…[/cyan]")
-    devices = await Discover.discover(
-        timeout=10,
-        region=region,
-        account=account or None,
-        password=password or None,
-    )
+    try:
+        devices = await Discover.discover(
+            timeout=10,
+            region=region,
+            account=account or None,
+            password=password or None,
+        )
+    except ValueError as e:
+        # e.g. an unsupported cloud region slipping through with a custom account.
+        console.print(
+            f"[red]Discovery failed: {e}[/red]\n"
+            "If this is a region problem, re-run and pick US, DE, or KR — or "
+            "enter your own NetHome Plus account (which works for any region)."
+        )
+        sys.exit(1)
     acs = [d for d in devices if isinstance(d, AC)]
     if not acs:
         console.print(
