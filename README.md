@@ -30,14 +30,14 @@ Requires Python 3.10+.
 ### With pipx (recommended)
 
 ```bash
-pipx install git+https://github.com/your-username/midea-cli
+pipx install git+https://github.com/adifatol/midea-cli
 midea
 ```
 
 ### From source
 
 ```bash
-git clone https://github.com/your-username/midea-cli
+git clone https://github.com/adifatol/midea-cli
 cd midea-cli
 python3 -m venv .venv
 .venv/bin/pip install -e .
