@@ -1,0 +1,11 @@
+.venv/
+config.json
+history.csv
+.midea_history
+__pycache__/
+*.pyc
+
+# build artifacts
+build/
+dist/
+*.egg-info/

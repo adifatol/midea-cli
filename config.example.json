@@ -1,0 +1,11 @@
+{
+  "_comment": "You do NOT need to create or edit this file. On first run, midea-cli discovers your AC on the LAN and auto-fills every value below (the token/key come from a one-time NetHome Plus cloud handshake), then writes the real config.json for you. This example only shows the shape of that generated file.",
+  "_comment_poll_interval": "poll_interval is the only value you might tweak by hand: seconds between background temperature samples (default 60).",
+  "ip": "<auto-detected, e.g. 192.168.1.50>",
+  "id": "<auto-detected device id>",
+  "port": 6444,
+  "token": "<auto-detected during first-run setup>",
+  "key": "<auto-detected during first-run setup>",
+  "name": "<auto-detected, e.g. Living Room AC>",
+  "poll_interval": 60
+}
