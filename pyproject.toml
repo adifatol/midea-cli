@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "midea-cli"
-version = "0.1.0"
+version = "0.2.0"
 description = "Interactive terminal CLI for Midea (NetHome Plus) WiFi air conditioners — local LAN control, a smart on/off thermostat, auto-off timers, and in-terminal temperature charts."
 readme = "README.md"
 requires-python = ">=3.10"

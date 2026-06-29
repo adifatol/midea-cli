@@ -331,6 +331,26 @@ def show_chart(hours: float) -> None:
         return
     x_min, x_max = min(all_x), max(all_x)
 
+    # AC on/off state. The poller (and smart mode) records power=1/0 on every
+    # sample, so we can show when — and for how long — the unit ran. Drawn as a
+    # step line in a band just below the temperatures so its width reads as
+    # duration without colliding with the °C lines.
+    p_times, p_vals = [], []
+    for r in rows:
+        try:
+            p_vals.append(1.0 if float(r["power"]) >= 0.5 else 0.0)
+        except (TypeError, ValueError, KeyError):
+            continue
+        p_times.append(r["_ts"].timestamp())
+
+    on_secs = off_secs = 0.0
+    for i in range(len(p_times) - 1):
+        dt = p_times[i + 1] - p_times[i]
+        if p_vals[i] >= 0.5:
+            on_secs += dt
+        else:
+            off_secs += dt
+
     plt.clf()
     plt.title(f"Temperatures — last {hours:g}h")
     plt.xlabel("time")
@@ -338,6 +358,25 @@ def show_chart(hours: float) -> None:
     for key, (label, ys) in series.items():
         if ys:
             plt.plot(times[key], ys, label=label, marker="braille")
+
+    if len(p_times) >= 2:
+        temps = [v for _, ys in series.values() for v in ys]
+        t_lo = min(temps)
+        gap = max(0.5, (max(temps) - t_lo) * 0.12)
+        off_y, on_y = t_lo - gap * 1.6, t_lo - gap * 0.6
+        # Build a square step series so on/off periods read as flat bands of
+        # the right width rather than diagonal ramps between samples.
+        step_x, step_y = [], []
+        prev = None
+        for t, v in zip(p_times, p_vals):
+            y = on_y if v >= 0.5 else off_y
+            if prev is not None:
+                step_x.append(t)
+                step_y.append(prev)
+            step_x.append(t)
+            step_y.append(y)
+            prev = y
+        plt.plot(step_x, step_y, label="AC on/off", marker="braille")
 
     # Evenly spaced ticks across the actual data range, labelled from real times.
     span = x_max - x_min
@@ -353,6 +392,17 @@ def show_chart(hours: float) -> None:
     plt.plotsize(80, 22)
     plt.theme("pro")
     plt.show()
+
+    total = on_secs + off_secs
+    if total > 0:
+        def _dur(s: float) -> str:
+            h, m = divmod(int(round(s / 60)), 60)
+            return f"{h}h {m:02d}m" if h else f"{m}m"
+
+        console.print(
+            f"AC [green]on[/green] {_dur(on_secs)} · [red]off[/red] {_dur(off_secs)} "
+            f"· duty {on_secs / total * 100:.0f}%"
+        )
 
 
 # --------------------------------------------------------------------------- #
